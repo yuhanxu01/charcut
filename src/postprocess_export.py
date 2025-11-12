@@ -12,13 +12,45 @@ def crop(img_t, box):
     x0,y0,x1,y1 = [int(v) for v in box]
     return img_t[:, y0:y1, x0:x1]
 
-def export_tile(rgb_crop, alpha, size=16):
+def export_tile(rgb_crop, alpha, size=16, output_format="rgba"):
+    """
+    Export character tile in different formats.
+
+    Args:
+        rgb_crop: RGB crop tensor (3,h,w)
+        alpha: Alpha matte tensor (h,w)
+        size: Output size (default 16)
+        output_format: "rgba" | "binary" | "grayscale"
+
+    Returns:
+        PIL Image
+    """
     c, h, w = rgb_crop.shape
     alpha = alpha.clamp(0,1)
-    rgba = torch.cat([rgb_crop, alpha.unsqueeze(0)], dim=0)  # 4xhxw
-    rgba = torch.nn.functional.interpolate(rgba.unsqueeze(0), size=(size,size), mode="bilinear", align_corners=False)[0]
-    arr = (rgba.permute(1,2,0).cpu().numpy()*255).astype(np.uint8)
-    return Image.fromarray(arr, "RGBA")
+
+    if output_format == "rgba":
+        rgba = torch.cat([rgb_crop, alpha.unsqueeze(0)], dim=0)  # 4xhxw
+        rgba = torch.nn.functional.interpolate(rgba.unsqueeze(0), size=(size,size), mode="bilinear", align_corners=False)[0]
+        arr = (rgba.permute(1,2,0).cpu().numpy()*255).astype(np.uint8)
+        return Image.fromarray(arr, "RGBA")
+
+    elif output_format == "binary":
+        # Binarize alpha and save as 1-bit PNG (palette mode)
+        alpha_resized = torch.nn.functional.interpolate(alpha.unsqueeze(0).unsqueeze(0), size=(size,size), mode="bilinear", align_corners=False)[0,0]
+        binary = (alpha_resized > 0.5).cpu().numpy().astype(np.uint8) * 255
+        img = Image.fromarray(binary, "L")
+        # Convert to palette mode for smaller file size
+        img_p = img.convert("P")
+        return img_p
+
+    elif output_format == "grayscale":
+        # Grayscale alpha matte
+        alpha_resized = torch.nn.functional.interpolate(alpha.unsqueeze(0).unsqueeze(0), size=(size,size), mode="bilinear", align_corners=False)[0,0]
+        arr = (alpha_resized.cpu().numpy()*255).astype(np.uint8)
+        return Image.fromarray(arr, "L")
+
+    else:
+        raise ValueError(f"Unknown output_format: {output_format}")
 
 def main():
     ap = argparse.ArgumentParser()
@@ -26,6 +58,8 @@ def main():
     ap.add_argument("--input", required=True, help="dir of RGB images")
     ap.add_argument("--out", required=True)
     ap.add_argument("--size", type=int, default=16)
+    ap.add_argument("--format", type=str, default="rgba", choices=["rgba", "binary", "grayscale"],
+                    help="Output format: rgba (4-channel), binary (1-bit palette), grayscale (8-bit)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
@@ -63,7 +97,7 @@ def main():
             scoarse = torch.nn.functional.interpolate(coarse.unsqueeze(0), size=(64,64), mode="bilinear", align_corners=False)
             a = refine(torch.cat([srgb, scoarse], dim=1))[0,0]
             a_up = torch.nn.functional.interpolate(a.unsqueeze(0).unsqueeze(0), size=(rgb.shape[1], rgb.shape[2]), mode="bilinear", align_corners=False)[0,0]
-            tile = export_tile(rgb, a_up, size=args.size)
+            tile = export_tile(rgb, a_up, size=args.size, output_format=args.format)
             tiles.append(tile)
         # write tiles with order index
         base = os.path.splitext(fname)[0]
