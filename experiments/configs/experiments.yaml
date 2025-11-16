@@ -1,0 +1,104 @@
+# Comprehensive experiment configurations
+# This file defines all experiments to run
+
+# Dataset configurations
+datasets:
+  tiny:
+    num_images: 100
+    canvas: 256
+    description: "Tiny dataset for quick testing"
+
+  small:
+    num_images: 500
+    canvas: 256
+    description: "Small dataset for development"
+
+  medium:
+    num_images: 2000
+    canvas: 256
+    description: "Medium dataset for benchmarking"
+
+# Baseline U-Net experiments
+baseline_experiments:
+  baseline_default:
+    name: "Baseline Default"
+    epochs: 30
+    batch: 4
+    lr: 1e-3
+    base_filters: 32
+    description: "Default baseline configuration"
+
+  baseline_deep:
+    name: "Baseline Deep"
+    epochs: 30
+    batch: 4
+    lr: 1e-3
+    base_filters: 48
+    description: "Deeper baseline with more filters"
+
+  baseline_shallow:
+    name: "Baseline Shallow"
+    epochs: 30
+    batch: 4
+    lr: 1e-3
+    base_filters: 24
+    description: "Shallower baseline with fewer filters"
+
+  baseline_lr_high:
+    name: "Baseline High LR"
+    epochs: 30
+    batch: 4
+    lr: 5e-3
+    base_filters: 32
+    description: "Higher learning rate"
+
+  baseline_lr_low:
+    name: "Baseline Low LR"
+    epochs: 30
+    batch: 4
+    lr: 5e-4
+    base_filters: 32
+    description: "Lower learning rate"
+
+  baseline_batch_large:
+    name: "Baseline Large Batch"
+    epochs: 30
+    batch: 8
+    lr: 2e-3
+    base_filters: 32
+    description: "Larger batch size with adjusted LR"
+
+# Advanced pipeline experiments
+advanced_experiments:
+  advanced_default:
+    name: "Advanced Default"
+    stage_a_epochs: 10
+    joint_epochs: 15
+    batch: 2
+    lr: 1e-4
+    lr_refine: 1e-3
+    description: "Default advanced two-stage pipeline"
+
+  advanced_long:
+    name: "Advanced Long Training"
+    stage_a_epochs: 20
+    joint_epochs: 30
+    batch: 2
+    lr: 1e-4
+    lr_refine: 1e-3
+    description: "Longer training for better convergence"
+
+  advanced_batch_large:
+    name: "Advanced Large Batch"
+    stage_a_epochs: 10
+    joint_epochs: 15
+    batch: 4
+    lr: 2e-4
+    lr_refine: 2e-3
+    description: "Larger batch with adjusted LR"
+
+# Evaluation settings
+evaluation:
+  iou_threshold: 0.5
+  min_instance_size: 5
+  max_visualizations: 30

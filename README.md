@@ -124,6 +124,45 @@ All pipelines support three output formats:
    - File size: Medium
    - Use `--format grayscale`
 
+## Comprehensive Experiments 🧪
+
+To find the best model pipeline for your use case, run comprehensive experiments:
+
+### Quick Experiment (~15-20 minutes)
+
+```bash
+# Quick comparison between baseline and advanced
+bash experiments/run_quick_experiment.sh
+```
+
+### Full Experiment Suite (~2-4 hours)
+
+```bash
+# Run all experiments with different configurations
+bash experiments/run_all_experiments.sh small   # 500 images
+bash experiments/run_all_experiments.sh medium  # 2000 images (recommended for final benchmarks)
+```
+
+This automatically:
+- ✅ Generates synthetic dataset
+- ✅ Trains 6 baseline configurations (different lr, filters, batch sizes)
+- ✅ Trains 3 advanced configurations
+- ✅ Evaluates all models with comprehensive metrics (IoU, F1, precision, recall, alpha quality)
+- ✅ Creates visualizations and comparison charts
+- ✅ Generates detailed report ranking all models
+
+### View Results
+
+```bash
+# View comparison report
+cat experiments/results/run_*/REPORT.md
+
+# Analyze results with charts
+python experiments/analyze_results.py --run_dir experiments/results/run_*
+```
+
+See `experiments/README.md` for detailed documentation.
+
 ## Notes
 - This repo is minimal. It is designed to run on synthetic data and small GPU.
 - Replace demo charset with larger sets for real training.
